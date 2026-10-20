@@ -1,0 +1,1 @@
+"""Explicit, parameterized MySQL queries."""
