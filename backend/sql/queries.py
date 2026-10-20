@@ -7,6 +7,13 @@ HEALTH = "SELECT 1 AS connected"
 DEMO_USER = "SELECT user_id FROM users WHERE username = %s"
 RECIPE_EXISTS = "SELECT recipe_id FROM recipes WHERE recipe_id = %s"
 INGREDIENT_EXISTS = "SELECT ingredient_id FROM ingredients WHERE ingredient_id = %s"
+INGREDIENT_SEARCH = """
+SELECT ingredient_id, name AS ingredient_name
+FROM ingredients
+WHERE name LIKE %s ESCAPE '!'
+ORDER BY name, ingredient_id
+LIMIT %s OFFSET %s
+"""
 
 RECIPE_COLUMNS = """
     r.recipe_id, r.source_slug, r.name AS recipe_name, r.native_name,

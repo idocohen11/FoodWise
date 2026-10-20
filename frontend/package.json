@@ -1,0 +1,11 @@
+{
+  "name": "foodwise-frontend-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/live-ui.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}

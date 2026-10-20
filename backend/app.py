@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 from flask import Flask, jsonify
 from flask.json.provider import DefaultJSONProvider
@@ -10,7 +11,7 @@ from werkzeug.exceptions import HTTPException
 from backend.config import load_config
 from backend.db import session
 from backend.errors import APIError, DatabaseError
-from backend.routes import analytics, favorites, pantry, recipes
+from backend.routes import analytics, favorites, ingredients, pantry, recipes
 from backend.sql import queries
 
 
@@ -25,14 +26,19 @@ class FoodWiseJSONProvider(DefaultJSONProvider):
 
 
 def create_app(test_config=None):
-    app = Flask(__name__)
+    frontend = Path(__file__).resolve().parent.parent / "frontend"
+    app = Flask(__name__, static_folder=str(frontend), static_url_path="/assets")
     app.json = FoodWiseJSONProvider(app)
     app.config.update(load_config())
     if test_config:
         app.config.update(test_config)
 
-    for blueprint in (recipes.bp, pantry.bp, favorites.bp, analytics.bp):
+    for blueprint in (recipes.bp, pantry.bp, favorites.bp, analytics.bp, ingredients.bp):
         app.register_blueprint(blueprint)
+
+    @app.get("/")
+    def frontend_index():
+        return app.send_static_file("index.html")
 
     @app.get("/api/health")
     def health():

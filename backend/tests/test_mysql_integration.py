@@ -104,6 +104,16 @@ def test_mysql_health(live_client):
     assert live_client.get("/api/health").json == {"status": "ok", "database": "connected"}
 
 
+def test_mysql_ingredient_lookup(live_client):
+    response = live_client.get("/api/ingredients?name=flour")
+    assert response.status_code == 200
+    assert response.json["ingredients"] == [{"ingredient_id": 1, "ingredient_name": "Flour"}]
+    assert live_client.get("/api/ingredients?name=%25").json["ingredients"] == []
+    assert live_client.get("/api/ingredients?name=a&limit=1&offset=1").json["ingredients"] == [
+        {"ingredient_id": 3, "ingredient_name": "Sugar"},
+    ]
+
+
 def test_mysql_search_filters_and_pagination(live_client):
     response = live_client.get("/api/recipes?name=stew&country=Spain&category=main&max_minutes=30&max_calories=300&min_protein=20")
     assert response.status_code == 200

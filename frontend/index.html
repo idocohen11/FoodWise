@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#214e3c">
+  <meta name="description" content="Find your next meal with FoodWise. Explore recipes, use your pantry, and discover your food preferences.">
+  <title>FoodWise · Your kitchen, thoughtfully connected</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <script type="module" src="/assets/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#/home" aria-label="FoodWise home">
+        <img src="/assets/favicon.svg" width="34" height="34" alt="">
+        Food<span>Wise</span><span class="brand-dot">.</span>
+      </a>
+      <button class="menu-toggle button quiet" id="menu-toggle" aria-expanded="false" aria-controls="main-nav">Menu <span aria-hidden="true">☰</span></button>
+      <nav id="main-nav" aria-label="Main navigation">
+        <a href="#/home" data-nav="home">Home</a>
+        <a href="#/recipes" data-nav="recipes">Recipes</a>
+        <a href="#/recommendations" data-nav="recommendations">What Can I Cook?</a>
+        <a href="#/pantry" data-nav="pantry">Pantry</a>
+        <a href="#/favorites" data-nav="favorites">Favorites</a>
+        <a href="#/analytics" data-nav="analytics">My Preferences</a>
+      </nav>
+      <span class="user-pill"><span class="avatar" aria-hidden="true">D</span> demo_user</span>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div class="loading-state" role="status">Opening your kitchen…</div>
+  </main>
+  <footer class="site-footer">
+    <span><strong>FoodWise</strong> · A little less waste. A lot more possibility.</span>
+    <span>Workshop in Data Management</span>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="notice">Please enable JavaScript to browse recipes and manage your pantry.</p></noscript>
+</body>
+</html>

@@ -23,6 +23,9 @@ $env:DB_PASSWORD = $credential.GetNetworkCredential().Password
 ```
 
 The development server listens at `http://127.0.0.1:5000`, with debug mode off.
+It also serves the FoodWise frontend at `http://127.0.0.1:5000/`; no separate
+frontend process is needed. See [frontend documentation](../frontend/README.md)
+for the UI, demo flow, and optional frontend tests.
 The exact start command after setup is:
 
 ```powershell
@@ -83,6 +86,7 @@ there is no authentication or user switching.
 | GET | `/health` | `{"status":"ok","database":"connected"}` |
 | GET | `/recipes` | `{"recipes":[...],"limit":30,"offset":0}` |
 | GET | `/recipes/<recipe_id>` | Recipe object with `ingredients` and `steps` arrays |
+| GET | `/ingredients?name=<text>` | `{"ingredients":[...],"limit":20,"offset":0}` |
 | GET | `/pantry` | `{"pantry":[...],"limit":30,"offset":0}` |
 | POST | `/pantry` | Saved ingredient ID, quantity, unit; 200 |
 | DELETE | `/pantry/<ingredient_id>` | 204, no body |
@@ -125,6 +129,14 @@ Timestamps are ISO 8601 strings without a timezone, reflecting existing MySQL
 DATETIME values.
 
 ### Pantry and matching semantics
+
+Ingredient lookup: `GET /api/ingredients?name=tomato&limit=20&offset=0` returns
+existing `ingredient_id` and `ingredient_name` values for a literal substring
+search. `name` is required (1–150 characters); `limit` is 1–100 (default 20).
+This lets the frontend select real IDs without schema changes. Filtering and
+sorting by name/ID happen in SQL. Unknown and repeated query parameters return
+400. See `routes/ingredients.py`, `services/ingredient_service.py`, and
+`sql/queries.py`.
 
 POST `/pantry` accepts:
 
