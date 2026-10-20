@@ -15,6 +15,7 @@ Open **http://127.0.0.1:5000/**. The API is at
 
 - [Frontend setup, exact commands, and course demo](frontend/README.md)
 - [Backend setup, API reference, and tests](backend/README.md)
+- [Query Explorer, SQL provenance, and presentation guide](docs/query-explorer.md)
 - [Existing schema](schema.sql)
 - [Day 5 complex SQL queries](FoodWise_Day5_Complex_Queries.sql)
 - [Original importer instructions](README_DAY4.txt)

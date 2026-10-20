@@ -3,6 +3,7 @@ import { renderRecipes, renderRecommendations, renderDetails } from "./recipes.j
 import { renderPantry } from "./pantry.js";
 import { renderFavorites } from "./favorites.js";
 import { renderAnalytics } from "./analytics.js";
+import { renderExplorer } from "./explorer.js";
 import { empty, link, failure } from "./ui.js";
 
 const root = document.querySelector("#main");
@@ -14,6 +15,7 @@ const pages = {
   recommendations: ["What Can I Cook?", renderRecommendations],
   pantry: ["My Pantry", renderPantry], favorites: ["Favorites", renderFavorites],
   analytics: ["My Preferences", renderAnalytics],
+  "query-explorer": ["Query Explorer", renderExplorer],
 };
 
 menuButton.addEventListener("click", () => {
@@ -47,15 +49,28 @@ async function render() {
   menuButton.setAttribute("aria-expanded", "false");
   root.classList.toggle("home-page", page === "home");
   document.title = `${isDetail ? "Recipe" : pages[page]?.[0] || "Page not found"} · FoodWise`;
-  window.scrollTo({ top: 0, behavior: "instant" });
   root.focus({ preventScroll: true });
   try {
     if (isDetail) await renderDetails(root, { signal, recipeId: parts[1] });
     else if (pages[page] && parts.length <= 1) await pages[page][1](root, { signal, params: route.searchParams });
     else root.innerHTML = empty("This page isn't on the menu.", "Let's get you back to your kitchen.", link("#/home", "Go home"));
   } catch (error) { if (!signal.aborted) failure(root, error, render); }
+  // Reset after asynchronous content replaces the old page, so scroll anchoring
+  // cannot retain the previous page's offset underneath the sticky navigation.
+  if (!signal.aborted) window.scrollTo({ top: 0, behavior: "instant" });
 }
 
+const siteHeader = document.querySelector(".site-header");
+document.querySelector(".skip-link").onclick = event => {
+  event.preventDefault();
+  root.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
+};
+if (typeof ResizeObserver !== "undefined") {
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--nav-height", `${siteHeader.getBoundingClientRect().height}px`);
+  }).observe(siteHeader);
+}
 window.addEventListener("hashchange", render);
 document.addEventListener("foodwise:refresh", render);
 render();

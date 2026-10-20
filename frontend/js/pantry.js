@@ -25,9 +25,12 @@ export async function renderPantry(root, { signal }) {
       pantry = await api.all("/pantry", "pantry", signal);
       if (signal.aborted) return;
       root.querySelector("#pantry-total").textContent = `${pantry.length} ingredients`;
-      target.innerHTML = pantry.length ? `<ul class="pantry-items">${pantry.map(row =>
-        `<li><span class="pantry-item-icon">${icon("leaf")}</span><div class="pantry-item-name"><strong>${escapeHTML(row.ingredient_name)}</strong><small>${row.quantity == null && !row.unit ? "Quantity not specified" : escapeHTML(quantity(row))}</small></div>
-          <button class="icon-button remove-pantry" data-id="${row.ingredient_id}" aria-label="Remove ${escapeHTML(row.ingredient_name)} from pantry" title="Remove ingredient">${icon("trash")}</button></li>`).join("")}</ul>`
+      const names = new Map();
+      pantry.forEach(row => names.set(row.ingredient_name, (names.get(row.ingredient_name) || 0) + 1));
+      const repeatedNames = [...names.values()].some(count => count > 1);
+      target.innerHTML = pantry.length ? `${repeatedNames ? '<p class="input-hint duplicate-note">Some imported ingredients share a name but have different IDs. They remain separate records; recipe matching uses the ID.</p>' : ""}<ul class="pantry-items">${pantry.map(row =>
+        `<li><span class="pantry-item-icon">${icon("leaf")}</span><div class="pantry-item-name"><strong>${escapeHTML(row.ingredient_name)}</strong>${names.get(row.ingredient_name) > 1 ? `<span class="ingredient-id badge neutral">ID ${row.ingredient_id}</span>` : ""}<small>${row.quantity == null && !row.unit ? "Quantity not specified" : escapeHTML(quantity(row))}</small></div>
+          <button class="icon-button remove-pantry" data-id="${row.ingredient_id}" aria-label="Remove ${escapeHTML(row.ingredient_name)} (ID ${row.ingredient_id}) from pantry" title="Remove ingredient">${icon("trash")}</button></li>`).join("")}</ul>`
         : empty("A fresh shelf. A fresh start.", "Search for ingredients using the add form. Your recipe matches will update as you go.");
       target.querySelectorAll(".remove-pantry").forEach(button => {
         button.onclick = () => action(button, async () => {

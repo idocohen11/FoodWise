@@ -51,10 +51,14 @@ class Session:
 
 
 @contextmanager
-def session(write=False):
+def session(write=False, readonly=False):
+    if write and readonly:
+        raise ValueError("A read-only session cannot commit writes.")
     connection = None
     try:
         connection = get_connection()
+        if readonly:
+            connection.start_transaction(readonly=True)
         yield Session(connection)
         if write:
             connection.commit()

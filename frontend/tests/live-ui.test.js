@@ -15,6 +15,7 @@ import { renderRecipes, renderRecommendations, renderDetails } from "../js/recip
 import { renderPantry } from "../js/pantry.js";
 import { renderFavorites } from "../js/favorites.js";
 import { renderAnalytics } from "../js/analytics.js";
+import { renderExplorer } from "../js/explorer.js";
 import { escapeHTML } from "../js/ui.js";
 
 const base = process.env.FOODWISE_TEST_URL || "http://127.0.0.1:5000";
@@ -58,7 +59,7 @@ test("Flask serves the frontend and every imported module", async () => {
   const response = await realFetch(base);
   assert.equal(response.status, 200);
   assert.match(await response.text(), /FoodWise/);
-  for (const file of ["api", "app", "ui", "home", "recipes", "pantry", "favorites", "analytics"]) {
+  for (const file of ["api", "app", "ui", "home", "recipes", "pantry", "favorites", "analytics", "explorer", "erd"]) {
     const asset = await realFetch(`${base}/assets/js/${file}.js`);
     assert.equal(asset.status, 200, file);
     assert.match(asset.headers.get("content-type"), /javascript/);
@@ -134,6 +135,12 @@ test("pantry loads every page and ingredient lookup uses real IDs", async () => 
   const expected = await api.all("/pantry", "pantry");
   await renderPantry(root, ctx());
   assert.equal(root.querySelectorAll(".pantry-items li").length, expected.length);
+  const counts = new Map();
+  expected.forEach(row => counts.set(row.ingredient_name, (counts.get(row.ingredient_name) || 0) + 1));
+  for (const row of expected.filter(row => counts.get(row.ingredient_name) > 1)) {
+    const item = root.querySelector(`[data-id="${row.ingredient_id}"]`).closest("li");
+    assert.equal(item.querySelector(".ingredient-id").textContent, `ID ${row.ingredient_id}`);
+  }
   root.querySelector("#ingredient-name").value = "tomato";
   root.querySelector("#ingredient-search").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   await until(() => root.querySelector("#ingredient-choice"), "ingredient search");
@@ -242,9 +249,58 @@ test("pantry add/remove interaction uses a looked-up ingredient and restores the
   assert.deepEqual((await api.all("/pantry", "pantry")).map(row => row.ingredient_id).sort((a, b) => a - b), originalIds);
 });
 
+test("explorer shows 14 tables, query-specific joins, steps, SQL highlights and table inspection", async () => {
+  await renderExplorer(root, ctx());
+  assert.equal(root.querySelectorAll("#query-select option").length, 6);
+  assert.equal(root.querySelectorAll(".erd-table").length, 14);
+  assert.equal(root.querySelectorAll(".erd-table.used").length, 3);
+  assert.equal(root.querySelector("[data-table=recipes]").classList.contains("current"), true);
+  click(root.querySelector("#step-next"));
+  assert.match(root.querySelector("#step-title").textContent, /Join recipe ingredients/);
+  assert.equal(root.querySelector("[data-edge=line_recipe]").classList.contains("current"), true);
+  assert.match(root.querySelector(".active-clause").textContent, /JOIN recipe_ingredients/);
+  click(root.querySelector("#step-next"));
+  assert.equal(root.querySelector("[data-edge=line_pantry]").classList.contains("current"), true);
+  const pantryNode = root.querySelector("[data-table=pantry]");
+  pantryNode.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  assert.match(root.querySelector(".erd-inspector").textContent, /pantry.user_id → users.user_id/);
+  click(root.querySelector("#step-prev"));
+  assert.match(root.querySelector("#step-counter").textContent, /Step 2/);
+  click(root.querySelector("#step-reset"));
+  assert.equal(root.querySelector("#step-prev").disabled, true);
+  assert.match(root.querySelector("#step-counter").textContent, /Step 1/);
+});
+
+test("every explorer query renders real plans and result previews without changing the demo", async () => {
+  const before = [await api.all("/pantry", "pantry"), await api.all("/favorites", "favorites")];
+  const catalog = await api.request("/query-explorer/queries");
+  for (const query of catalog.queries) {
+    await renderExplorer(root, ctx({ query: query.key }));
+    assert.equal(root.querySelectorAll(".erd-table.used").length, query.tables.length);
+    root.querySelector("#explorer-parameters").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await until(() => root.querySelector(".preview-section") || root.querySelector("#explorer-execution .error-state"), query.key);
+    assert.ok(root.querySelector(".preview-section"), root.querySelector("#explorer-execution").textContent);
+    assert.match(root.querySelector("#explorer-execution .plan-output").textContent, /actual time=/);
+    assert.ok(root.querySelectorAll(".preview-section tbody tr").length > 0);
+  }
+  assert.deepEqual([await api.all("/pantry", "pantry"), await api.all("/favorites", "favorites")], before);
+});
+
+test("explorer parameter edits clear old results and invalid recipes have a safe error", async () => {
+  await renderExplorer(root, ctx({ query: "missing_ingredients" }));
+  root.querySelector("[name=recipe_id]").value = "9223372036854775000";
+  root.querySelector("#explorer-parameters").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await until(() => root.querySelector("#explorer-execution .error-state"), "invalid explorer recipe");
+  assert.match(root.querySelector("#explorer-execution").textContent, /Recipe not found/);
+  root.querySelector("[name=recipe_id]").dispatchEvent(new Event("input", { bubbles: true }));
+  assert.equal(root.querySelector("#explorer-execution .error-state"), null);
+  assert.match(root.querySelector("#explorer-execution").textContent, /current parameters/);
+});
+
 test("router, keyboard-friendly menu, and browser hash navigation", async () => {
   // jsdom has no viewport; visual/responsive layout still requires a browser.
-  dom.window.scrollTo = () => {};
+  const scrolls = [];
+  dom.window.scrollTo = () => scrolls.push(root.textContent);
   await import("../js/app.js");
   await until(() => root.querySelector("#connection-status")?.textContent === "Connected", "home route");
   click(document.querySelector("#menu-toggle"));
@@ -254,6 +310,16 @@ test("router, keyboard-friendly menu, and browser hash navigation", async () => 
   location.hash = "/recommendations";
   await until(() => root.querySelectorAll(".match-card").length === 12, "recommendation route");
   assert.equal(document.querySelector('[data-nav="recommendations"]').getAttribute("aria-current"), "page");
+  assert.match(scrolls.at(-1), /Your best matches/);
+  location.hash = "/pantry";
+  await until(() => root.querySelectorAll(".pantry-items li").length > 0, "pantry route");
+  assert.match(scrolls.at(-1), /On your shelf/);
+  click(document.querySelector(".skip-link"));
+  assert.equal(location.hash, "#/pantry", "Skip link must not change the application route");
+  location.hash = "/query-explorer";
+  await until(() => root.querySelectorAll(".erd-table").length === 14, "explorer route");
+  assert.equal(document.querySelector('[data-nav="query-explorer"]').getAttribute("aria-current"), "page");
+  assert.match(scrolls.at(-1), /Query Explorer/);
   location.hash = "/unknown";
   await until(() => /isn't on the menu/.test(root.textContent), "not-found route");
 });

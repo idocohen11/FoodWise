@@ -57,7 +57,7 @@
   nav a.active::after { position: absolute; content: ""; height: 3px; background: var(--green); bottom: 0; left: 0; right: 0; border-radius: 4px 4px 0 0; }
   .user-pill { display: inline-flex; gap: 9px; align-items: center; font-size: .74rem; white-space: nowrap; color: var(--muted); }
   .avatar { display: inline-grid; place-items: center; width: 31px; height: 31px; border: 1px solid #d8decc; border-radius: 50%; background: #f4f5eb; font-weight: 650; color: var(--green); }
-  .menu-toggle { display: none !important; }
+  .menu-toggle { display: none; }
   main { max-width: 1280px; padding: 48px 40px 64px; margin: auto; min-height: calc(100vh - 166px); }
   .site-footer { border-top: 1px solid var(--line); max-width: 1200px; margin: auto; padding: 25px 0; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: .72rem; }
   .site-footer strong { color: var(--green); }
@@ -269,7 +269,7 @@
   }
   @media (max-width: 850px) {
     .header-inner { flex-wrap: wrap; gap: 0; padding: 16px 24px; min-height: 73px; justify-content: space-between; }
-    .menu-toggle { display: inline-flex !important; min-height: 36px; padding: 7px 10px; }
+    .menu-toggle { display: inline-flex; min-height: 36px; padding: 7px 10px; }
     nav { display: none; width: 100%; flex-basis: 100%; padding-top: 16px; margin: 0; gap: 5px; }
     nav.is-open { display: grid; grid-template-columns: 1fr 1fr; }
     nav a { padding: 11px 14px; border-radius: 8px; font-size: .88rem; }

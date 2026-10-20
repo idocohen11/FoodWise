@@ -62,6 +62,11 @@ recreate the schema or rerun imports to start the application.
 | My Pantry | `/#/pantry` | Pantry GET/POST/DELETE, ingredient lookup |
 | Favorites | `/#/favorites` | Favorites GET/DELETE; add from recipe details |
 | My Preferences | `/#/analytics` | `/api/analytics/preferences` |
+| Query Explorer | `/#/query-explorer` | Fixed read-only query catalog, real results and MySQL plans |
+
+The [Query Explorer guide](../docs/query-explorer.md) covers the interactive
+14-table ERD, SQL highlighting, execution plans, source-data investigation,
+spacing corrections, and exact demo/restart commands.
 
 The dashboard shows actual pantry and favorites counts. It does not show a total
 recipe count because the existing API does not expose one.

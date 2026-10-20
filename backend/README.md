@@ -81,6 +81,13 @@ roll back. Recipe details use one connection for recipe, ingredient, and step re
 All endpoints are under `/api`. This initial local demo always uses `demo_user`;
 there is no authentication or user switching.
 
+Query Explorer adds `GET /api/query-explorer/queries`,
+`GET /api/query-explorer/<query_key>`, and
+`POST /api/query-explorer/<query_key>/explain`. It only runs six server-defined
+SELECT queries in read-only transactions. See the
+[Query Explorer guide](../docs/query-explorer.md) for parameters, SQL provenance,
+plan semantics, validation, and safe execution details.
+
 | Method | Path | Response |
 | --- | --- | --- |
 | GET | `/health` | `{"status":"ok","database":"connected"}` |

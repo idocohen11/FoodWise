@@ -11,7 +11,7 @@ from werkzeug.exceptions import HTTPException
 from backend.config import load_config
 from backend.db import session
 from backend.errors import APIError, DatabaseError
-from backend.routes import analytics, favorites, ingredients, pantry, recipes
+from backend.routes import analytics, explorer, favorites, ingredients, pantry, recipes
 from backend.sql import queries
 
 
@@ -33,7 +33,7 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    for blueprint in (recipes.bp, pantry.bp, favorites.bp, analytics.bp, ingredients.bp):
+    for blueprint in (recipes.bp, pantry.bp, favorites.bp, analytics.bp, ingredients.bp, explorer.bp):
         app.register_blueprint(blueprint)
 
     @app.get("/")

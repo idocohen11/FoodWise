@@ -1,0 +1,100 @@
+/* Extends the existing FoodWise design. No external libraries or animation. */
+:root { --nav-height: 84px; --page-top-gap: 52px; }
+.menu-toggle { display: none; }
+html { scroll-padding-top: calc(var(--nav-height) + 24px); }
+main { padding-top: var(--page-top-gap); overflow-anchor: none; scroll-margin-top: calc(var(--nav-height) + 24px); }
+.page-heading, .detail-heading, .hero { scroll-margin-top: calc(var(--nav-height) + 24px); }
+.ingredient-id { margin-left: 9px; vertical-align: middle; }
+.duplicate-note { border-left: 3px solid #b4c69b; padding-left: 12px; margin-bottom: 20px; }
+.explorer-banner { display: flex; gap: 14px; align-items: center; background: #edf2e7; border: 1px solid #dde6d5; border-radius: 12px; padding: 17px 22px; margin-bottom: 26px; color: #526947; font-size: .86rem; }
+.explorer-selector { display: grid; grid-template-columns: minmax(210px, .8fr) 1.6fr auto; align-items: center; gap: 12px 24px; margin-bottom: 24px; }
+.explorer-selector > label { grid-column: 1 / -1; }
+.explorer-selector h2 { font-size: 1.3rem; margin-bottom: 7px; }
+.explorer-selector p { font-size: .82rem; }
+.explorer-workspace { display: grid; grid-template-columns: minmax(310px, .8fr) minmax(0, 1.55fr); gap: 22px; align-items: start; }
+.explorer-workspace > .surface { min-width: 0; padding: 22px; }
+.explorer-workspace .section-heading { align-items: flex-start; gap: 10px; }
+.explorer-workspace .section-heading h2 { font-size: 1.35rem; }
+.concept-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.sql-code, .plan-output, .binding-output { background: #1f3028; color: #e4ecdf; border: 1px solid #30493a; border-radius: 10px; font: .74rem/1.75 Consolas, "Cascadia Code", monospace; overflow: auto; padding: 15px; tab-size: 4; white-space: pre; text-wrap: nowrap; }
+.sql-code { max-height: 530px; padding: 12px 0; }
+.sql-line { display: flex; width: max-content; min-width: 100%; padding-right: 18px; border-left: 3px solid transparent; }
+.line-number { flex: 0 0 3.4em; color: #a3b39e; text-align: right; padding-right: 1em; user-select: none; }
+.active-clause { background: #38513a; border-left-color: #e6c17a; color: #fff3d3; }
+.lookup-details { margin: 17px 0 24px; }
+details > summary { cursor: pointer; font-size: .85rem; color: var(--green); font-weight: 600; padding: 10px 0; }
+.explorer-inputs { display: grid; gap: 14px; margin: 18px 0; }
+.explorer-inputs label { font-size: .76rem; }
+.erd-scroll { width: 100%; overflow: auto; max-height: 580px; border: 1px solid var(--line); border-radius: 12px; background: #f8faf5; }
+.erd-svg { display: block; width: 100%; min-width: 690px; }
+.erd-table { cursor: pointer; }
+.erd-table rect { fill: #f5f7ef; stroke: #cdd8c5; stroke-width: 1.5; }
+.erd-table line { stroke: #d6e0cb; stroke-width: 1; }
+.erd-table .erd-title { font: 600 15px "Segoe UI", sans-serif; fill: #354d33; }
+.erd-key { font: 10px Consolas, monospace; fill: #667d52; }
+.erd-field { font: 12px Consolas, monospace; fill: #52664a; }
+.erd-table.unrelated { opacity: .36; }
+.erd-table.used rect { stroke: #6c9053; fill: #edf4e5; stroke-width: 2; }
+.erd-table.current rect { stroke: #b27b29; fill: #fff2d7; stroke-width: 3; }
+.erd-table:focus-visible rect { stroke: #a36422; stroke-width: 4; }
+.erd-edge { fill: none; color: #cad4c3; stroke: currentColor; stroke-width: 1.8; }
+.erd-edge.unused { opacity: .45; }
+.erd-edge.used { color: #668a4c; stroke-width: 3; }
+.erd-edge.current { color: #af701c; stroke-width: 4; }
+.erd-edge.query-join { stroke-dasharray: 8 5; }
+.erd-edge.query-join.unused { display: none; }
+.erd-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .68rem; color: var(--muted); margin: 13px 0; }
+.erd-inspector { padding: 12px 15px; border-radius: 9px; background: #f1f4ec; font: .73rem/1.65 "Segoe UI", sans-serif; overflow-wrap: anywhere; }
+.erd-inspector p { margin-top: 5px; }
+.erd-inspector ul { padding-left: 18px; margin: 7px 0 0; }
+.step-panel { background: #f0f4e9; border: 1px solid #dce5d2; border-radius: 12px; padding: 20px; margin-top: 22px; }
+.step-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.step-heading strong { font-size: .98rem; }
+#step-description { color: #596e4d; font-size: .85rem; line-height: 1.8; min-height: 60px; }
+.step-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 17px; }
+.step-controls .button { font-size: .75rem; padding: 10px 13px; min-height: 40px; }
+.step-outline { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 4px; }
+.step-outline button { width: 100%; text-align: left; font-size: .77rem; padding: 8px 12px; border-radius: 6px; color: #68785e; background: transparent; }
+.step-outline button.selected { color: #3d5e32; background: #e9f0df; font-weight: 650; }
+.execution-panel { margin-top: 26px; min-width: 0; }
+.explorer-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 17px; }
+.explorer-metrics > div { padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: #f6f8f1; }
+.explorer-metrics span { display: block; font-size: .72rem; color: var(--muted); margin-bottom: 7px; }
+.explorer-metrics strong { font-size: 1.35rem; font-weight: 650; }
+.plan-output { max-height: 460px; margin: 10px 0 18px; }
+.explorer-table { max-height: 440px; border: 1px solid var(--line); border-radius: 10px; margin: 12px 0; }
+.explorer-table th, .explorer-table td { padding: 12px 15px; font-size: .75rem; max-width: 400px; overflow-wrap: anywhere; white-space: normal; min-width: 95px; }
+.explorer-table thead th { position: sticky; top: 0; z-index: 1; }
+.preview-section { border-top: 1px solid var(--line); padding-top: 25px; margin-top: 24px; }
+/* Extra navigation item needs the existing compact menu at a wider breakpoint. */
+@media (max-width: 1190px) {
+  .header-inner { flex-wrap: wrap; gap: 0; padding: 16px 24px; min-height: 73px; justify-content: space-between; }
+  .menu-toggle { display: inline-flex; min-height: 36px; padding: 7px 10px; }
+  .user-pill { display: none; }
+  #main-nav { display: none; width: 100%; flex-basis: 100%; padding-top: 16px; margin: 0; gap: 5px; }
+  #main-nav.is-open { display: grid; grid-template-columns: 1fr 1fr; }
+  #main-nav a { padding: 11px 14px; border-radius: 8px; font-size: .88rem; }
+  #main-nav a.active { background: #edf2e6; }
+  #main-nav a.active::after { display: none; }
+}
+@media (min-width: 1191px) {
+  .header-inner { gap: 22px; }
+  #main-nav { gap: 18px; }
+}
+@media (max-width: 950px) {
+  .explorer-workspace { grid-template-columns: 1fr; }
+  .explorer-selector { grid-template-columns: 1fr; }
+  .explorer-selector > label { grid-column: auto; }
+  .sql-code { max-height: 320px; }
+  .explorer-inputs { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  :root { --page-top-gap: 40px; }
+  .explorer-banner { align-items: flex-start; }
+  .explorer-workspace > .surface { padding: 18px; }
+  .explorer-metrics { grid-template-columns: 1fr 1fr; }
+  .explorer-metrics strong { font-size: 1.1rem; }
+  .explorer-inputs { grid-template-columns: 1fr; }
+  .execution-panel { padding: 18px; }
+  .execution-panel > .section-heading { flex-direction: column; }
+}

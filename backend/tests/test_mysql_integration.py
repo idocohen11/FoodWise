@@ -61,6 +61,10 @@ def mysql_config():
             VALUES (1, 2, 'Cook.'), (1, 1, 'Mix.')
         """)
         cur.execute("INSERT INTO users (username) VALUES ('other_user')")
+        cur.execute("INSERT INTO food_categories VALUES (1, 'Test category')")
+        cur.execute("INSERT INTO food_items VALUES (1, 'Test protein food', 'test', 1)")
+        cur.execute("INSERT INTO nutrients VALUES (1, 'Protein', 'G'), (2, 'Energy', 'KCAL')")
+        cur.execute("INSERT INTO food_nutrients VALUES (1, 1, 1, 25), (2, 1, 2, 150)")
         connection.commit()
         cur.close()
     finally:
@@ -102,6 +106,65 @@ def live_client(mysql_config):
 
 def test_mysql_health(live_client):
     assert live_client.get("/api/health").json == {"status": "ok", "database": "connected"}
+
+
+@pytest.mark.parametrize("key", [
+    "pantry_match", "missing_ingredients", "smart_filter",
+    "top_ingredients_country", "favorite_preferences", "usda_comparison",
+])
+def test_mysql_explorer_real_plans_and_unchanged_state(live_client, key):
+    before = (live_client.get("/api/pantry").json, live_client.get("/api/favorites").json)
+    response = live_client.post(f"/api/query-explorer/{key}/explain", json={})
+    assert response.status_code == 200, response.json
+    data = response.json
+    assert "->" in data["plan"]["analyze_tree"]
+    assert "query_block" in data["plan"]["estimate_json"]
+    assert data["results"]["rows"]
+    assert (live_client.get("/api/pantry").json, live_client.get("/api/favorites").json) == before
+    if key == "usda_comparison":
+        assert data["results"]["rows"][0]["protein_g"] == 25
+        assert data["results"]["rows"][0]["calories_kcal"] == 150
+    if key == "pantry_match":
+        assert data["results"]["rows"] == live_client.get("/api/recommendations/pantry").json["recipes"]
+    if key == "favorite_preferences":
+        assert data["results"]["rows"] == live_client.get("/api/analytics/preferences").json["preferences"]
+
+
+def test_mysql_readonly_transaction_rejects_writes(live_client):
+    from backend.db import session
+    from backend.errors import DatabaseError
+    before = live_client.get("/api/pantry").json
+    with live_client.application.app_context(), pytest.raises(DatabaseError):
+        with session(readonly=True) as db:
+            # Deliberate defense-in-depth check on the disposable test DB only.
+            db.execute("DELETE FROM pantry")
+    assert live_client.get("/api/pantry").json == before
+
+
+def test_mysql_erd_metadata_matches_real_schema(mysql_config):
+    from backend.explorer_metadata import RELATIONSHIPS, TABLES
+    connection = mysql.connector.connect(**mysql_config)
+    try:
+        cur = connection.cursor(dictionary=True)
+        cur.execute("""
+            SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = %s AND REFERENCED_TABLE_NAME IS NOT NULL
+        """, (mysql_config["database"],))
+        actual = {(f"{r['TABLE_NAME']}.{r['COLUMN_NAME']}",
+                   f"{r['REFERENCED_TABLE_NAME']}.{r['REFERENCED_COLUMN_NAME']}") for r in cur.fetchall()}
+        assert actual == {(r["source"], r["target"]) for r in RELATIONSHIPS}
+        cur.execute("""
+            SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = %s AND CONSTRAINT_NAME = 'PRIMARY' ORDER BY ORDINAL_POSITION
+        """, (mysql_config["database"],))
+        actual_keys = {}
+        for row in cur.fetchall():
+            actual_keys.setdefault(row["TABLE_NAME"], []).append(row["COLUMN_NAME"])
+        assert actual_keys == {table["name"]: table["primary_key"] for table in TABLES}
+        cur.close()
+    finally:
+        connection.close()
 
 
 def test_mysql_ingredient_lookup(live_client):

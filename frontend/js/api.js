@@ -7,12 +7,12 @@ export class ApiError extends Error {
   }
 }
 
-export async function request(path, { method = "GET", body, signal } = {}) {
+export async function request(path, { method = "GET", body, signal, timeoutMs = 20000 } = {}) {
   const controller = new AbortController();
   const abort = () => controller.abort();
   if (signal?.aborted) controller.abort();
   signal?.addEventListener("abort", abort, { once: true });
-  const timeout = setTimeout(abort, 20000);
+  const timeout = setTimeout(abort, timeoutMs);
   try {
     const response = await fetch(`/api${path}`, {
       method, signal: controller.signal, cache: "no-store",
